@@ -1,4 +1,4 @@
-# ELTE_Numerical_Methods_2016
+# Numerical methods in physics 2016-2017/1 @ ELTE
 
 All of the codes were wrote in `C language`.
 
