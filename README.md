@@ -41,7 +41,6 @@ When working out the problem, work in plane, with geocentric coordinates (Earth 
 Given constants:
 
 Mass of Earth: 5.9736 × 10^{24} kg
-
 Mass of Moon: 7.349 × 10^{22} kg
 
 Moon's distance in Apogee: 405.500 km
