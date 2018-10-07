@@ -39,7 +39,6 @@ If you make the minimum task, you don't need to take into account the "mixed-mem
 When working out the problem, work in plane, with geocentric coordinates (Earth is fixed at 0.0 points).
 
 Given constants:
-
 - Mass of Earth: 5.9736 × 10^{24} kg
 - Mass of Moon: 7.349 × 10^{22} kg
 - Moon's distance in Apogee: 405.500 km
