@@ -39,12 +39,19 @@ If you make the minimum task, you don't need to take into account the "mixed-mem
 When working out the problem, work in plane, with geocentric coordinates (Earth is fixed at 0.0 points).
 
 Given constants:
+
 Mass of Earth: 5.9736 × 10^{24} kg
+
 Mass of Moon: 7.349 × 10^{22} kg
+
 Moon's distance in Apogee: 405.500 km
+
 Moon's speed in Apogee: 964 m/s
+
 Moon's distance in Perigee : 363.300 km
+
 Moon's speed in the Perigee : 1076 m/s
+
 Gravitational constant: 6.67384 × 10^{-11} m^{3} kg^{-1} s^{-2}
 
 *Full task*: Integrate the equation of motion with a simple, and then an adaptive step-length-controlled RK4/classical Runge–Kutta method. The program should be completely general, no constraint for the variables to be integrated. Use functionpointers! Try the program to solve the equations of the Lorenz equation or the double pendulum. Show the results on a plot!
