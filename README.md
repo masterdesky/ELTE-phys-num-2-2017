@@ -39,8 +39,8 @@ If you make the minimum task, you don't need to take into account the "mixed-mem
 When working out the problem, work in plane, with geocentric coordinates (Earth is fixed at 0.0 points).
 
 Given constants:
-Mass of Earth: $5.9736 \times 10^{24} kg$
-Mass of Moon: $7.349 \times 10^{22} kg$
+Mass of Earth: $$5.9736 \times 10^{24} kg$$
+Mass of Moon: $$7.349 \times 10^{22} kg$$
 Moon's distance in Apogee: $405.500 km$
 Moon's speed in Apogee: $964 \frac{m}{s}$
 Moon's distance in Perigee : 363.300 km
