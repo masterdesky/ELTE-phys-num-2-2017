@@ -42,7 +42,6 @@ Given constants:
 
 Mass of Earth: 5.9736 × 10^{24} kg
 Mass of Moon: 7.349 × 10^{22} kg
-
 Moon's distance in Apogee: 405.500 km
 
 Moon's speed in Apogee: 964 m/s
