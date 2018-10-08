@@ -7,12 +7,22 @@
 const char FILE_NAME_MATRIX[] = "matrix.txt";
 const char FILE_NAME_VECTOR[] = "vector.txt";
 
-// Reading in a tensor from an input file
+
+// Allocating memory for the various array objects
+double* AllocateMemory(double* Tensor)
+{
+
+    Tensor = (double*)calloc(16, sizeof(double));
+
+    return Tensor;
+}
+
+// Reading in a Tensor from an input file
 // The file could contain doubles, with '.' or ',' as decimal points.
 // Between the doubles any kind of denumerator is allowed, as long
 // as they're not the '.', or ',' (decimal points) or the '-' (minus sign) characters.
 //
-// Also the file should "look like" a tensor, so every rows and columns
+// Also the file should "look like" a Tensor, so every rows and columns
 // should have the same amount of numbers. (Imperfect rows/columns are permitted.)
 double* ReadInTensor(FILE* Input, double* Tensor, int* NumberOfRows)
 {
@@ -30,7 +40,7 @@ double* ReadInTensor(FILE* Input, double* Tensor, int* NumberOfRows)
         FileStream = getc(Input);
 
         // If EOF is reached, then append the number in the CurrentNumber buffer to 
-        // the tensor array, then break the loop.
+        // the Tensor array, then break the loop.
         if(FileStream == EOF)
         {
             // Null terminating string
@@ -41,15 +51,13 @@ double* ReadInTensor(FILE* Input, double* Tensor, int* NumberOfRows)
 
             // Append double to our Tensor
             Tensor[TensorIndex] = CurrentTensorElement;
-
-            printf("%lf ", Tensor[TensorIndex]);
-
+            
             printf("EOF reached!\n");
 
             break;
         }
 
-        // Counting rows in the tensor and incrementing the NumberOfRows
+        // Counting rows in the Tensor and incrementing the NumberOfRows
         // integer, everytime a '\n' character is reached
         if(FileStream == '\n')
         {
@@ -58,7 +66,7 @@ double* ReadInTensor(FILE* Input, double* Tensor, int* NumberOfRows)
 
         // If the current char from the input file is a number, or a decimal point/ +- sign, then
         // append it to the CurrentNumber char array buffer
-        if((FileStream >= '0' && FileStream <='9') || FileStream == '.' || FileStream == ',' || FileStream == '-')
+        if((FileStream >= '0' && FileStream <= '9') || FileStream == '.' || FileStream == ',' || FileStream == '-')
         {
             CurrentNumber[CharIndex] = FileStream;
             CharIndex += 1;
@@ -70,7 +78,7 @@ double* ReadInTensor(FILE* Input, double* Tensor, int* NumberOfRows)
         }
 
         // If it isn't, then null terminate the CurrentNumber buffer, convert it to integer,
-        // and then append it to the tensor double* array
+        // and then append it to the Tensor double* array
         else
         {
             // Null terminating string
@@ -82,12 +90,10 @@ double* ReadInTensor(FILE* Input, double* Tensor, int* NumberOfRows)
             // Append double to our Tensor
             Tensor[TensorIndex] = CurrentTensorElement;
 
-            // Relaunch indexing for a new tensor element
+            // Relaunch indexing for a new Tensor element
             CharIndex = 0;
 
-            printf("%lf ", Tensor[TensorIndex]);
-
-            // Temp. counter for elements of the tensor
+            // Temp. counter for elements of the Tensor
             TensorIndex += 1;
 
             if(TensorIndex >= (sizeof(Tensor)/sizeof(Tensor[0])))
@@ -97,8 +103,11 @@ double* ReadInTensor(FILE* Input, double* Tensor, int* NumberOfRows)
         }
     }
 
+    free(CurrentNumber);
+
     return Tensor;
 }
+
 
 // Reading in 1D array from an input file
 // The file could contain doubles, with '.' or ',' as decimal points.
@@ -110,9 +119,7 @@ double* ReadInTensor(FILE* Input, double* Tensor, int* NumberOfRows)
 double* ReadInOneDArray(FILE* Input, double* OneDArray)
 {
     char FileStream;
-    printf("OK1");
     char* CurrentNumber = (char*)calloc(16, sizeof(char));
-    printf("OK2");
 
     int CharIndex = 0;
     int ElementIndex = 0;
@@ -136,8 +143,6 @@ double* ReadInOneDArray(FILE* Input, double* OneDArray)
 
             // Append double to our Tensor
             OneDArray[ElementIndex] = CurrentOneDArrayElement;
-
-            printf("%lf ", OneDArray[ElementIndex]);
 
             printf("EOF reached!\n");
 
@@ -173,8 +178,6 @@ double* ReadInOneDArray(FILE* Input, double* OneDArray)
             // Relaunch indexing for a new 1D array element
             CharIndex = 0;
 
-            printf("%lf ", OneDArray[ElementIndex]);
-
             // Temp. counter for elements of the 1D array
             ElementIndex += 1;
 
@@ -185,8 +188,11 @@ double* ReadInOneDArray(FILE* Input, double* OneDArray)
         }
     }
 
+    free(CurrentNumber);
+
     return OneDArray;
 }
+
 
 // Checking if the matrix and the vector have correct shapes
 //
@@ -200,7 +206,7 @@ void ConsistencyCheck(int Columns, int RowsVc)
 {
     if(Columns == RowsVc)
     {
-        printf("Sizeof(Columns): %d\nSizeof(Vector): %llu", Columns, RowsVc);
+        printf("Sizeof(Columns): %d\nSizeof(Vector): %d", Columns, RowsVc);
     }
 
     else
@@ -209,6 +215,7 @@ void ConsistencyCheck(int Columns, int RowsVc)
         EXIT_FAILURE;
     }
 }
+
 
 // Multiplying given matrix and vector
 // If the input matrix have the shape M*N and the input vector have the shape N*1
@@ -230,6 +237,7 @@ double* MultiplyThings(int Rows, int Columns, int RowsVc, double* Matrix, double
 
     return Output;
 }
+
 
 // Printing a matrix with M rows and N columns to the standard output
 void PrintOutput(double* Tensor, int Rows, int Columns)
@@ -253,12 +261,39 @@ int main()
     // Allocating memory and defining numerators
 
     // Allocate memory for used array-type variables
-    double* Matrix = (double*)calloc(16, sizeof(double));;
-    double* Vector = (double*)calloc(16, sizeof(double));;
+    double* Matrix;
+    double* Vector;
 	double* Output;
+
+    Matrix = AllocateMemory(Matrix);
+    Vector = AllocateMemory(Vector);
+
+    //printf("OK");
 
     // Index for counting rows of our matrix
     int NumberOfRowsMx = 1;
+
+    // ================== Matrix
+    // Reading in matrix from a file to the Matrix double* array
+
+     // Opening file - which containing the matrix - in read-only mode
+    FILE* Input_Mx = fopen("matrix.txt", "r");
+
+    // Read in matrix from input file
+    // The ReadInTensor function returns a double* array
+    Matrix = ReadInTensor(Input_Mx, Matrix, &NumberOfRowsMx);
+
+    for(int i = 0; i < 4; i++)
+    {
+        for(int j = 0; j < 4; j++)
+        {
+            printf("%lf ", Matrix[4 * i + j]);
+        }
+        printf("\n");
+    }
+
+    // Close the input file
+    fclose(Input_Mx);
 
 
     // ================== Vector
@@ -275,26 +310,15 @@ int main()
     fclose(Input_Vc);
 
 
-    // ================== Matrix
-    // Reading in matrix from a file to the Matrix double* array
-
-     // Opening file - which containing the matrix - in read-only mode
-    FILE* Input_Mx = fopen("matrix.txt", "r");
-
-    // Read in matrix from input file
-    // The ReadInTensor function returns a double* array
-    Matrix = ReadInTensor(Input_Mx, Matrix, &NumberOfRowsMx);
-
-    // Close the input file
-    fclose(Input_Mx);
-
-
-    // ================== 
+    // ================== Remaining calculations
     // Multiply matrix and vector, then print output to stdout
 
-    // Correcions for this particular problem
+    // Calculate constants for this particular problem
+    // Size of the vector
     int NumberOfRowsVc = sizeof(Vector) / sizeof(Vector[0]);
+    // Size of the full matrix
     int SizeOfMatrix = sizeof(Matrix) / sizeof(Matrix[0]);
+    // Column length of the matrix
     int NumberOfColumnsMx = SizeOfMatrix / NumberOfRowsMx;
 
     printf("sizeof(Matrix): %llu\n", sizeof(Matrix));
@@ -304,8 +328,6 @@ int main()
     printf("SizeOfMatrix: %d\n", SizeOfMatrix);
     printf("NumberOfColumnsMx: %d\n", NumberOfColumnsMx);
     printf("NumberOfRowsVc: %d\n", NumberOfRowsVc);
-
-    printf("OKsize\n");
 
     // Multiply the matrix and the vector if it's possible
 	Output = MultiplyThings(NumberOfRowsMx, NumberOfColumnsMx, NumberOfRowsVc, Matrix, Vector, Output);
@@ -317,6 +339,8 @@ int main()
     
     // Print output
     PrintOutput(Output, NumberOfRowsMx, NumberOfRowsVc);
+
+    free(Output);
 
     return 0;
 }
