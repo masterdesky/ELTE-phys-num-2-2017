@@ -122,7 +122,9 @@ static double* ReadInTensor(FILE* Input, double* Tensor, int* NumberOfRows, int*
         }
     }
 
+    printf("Free before");
     free(CurrentNumber);
+    printf("Free after");
 
     return Tensor;
 }
