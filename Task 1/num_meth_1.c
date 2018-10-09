@@ -11,17 +11,29 @@ const char FILE_NAME_VECTOR[] = "../vector.txt";
 
 
 // Allocating memory for the various array objects
-static double* AllocateMemory(double* InputTensor)
+static double* CallocateMemory(double* InputTensor)
 {
-    InputTensor = (double*)calloc(16, sizeof(double));
+    InputTensor = (double*)calloc(64, sizeof(double));
+
+    if(InputTensor == NULL)
+    {
+        perror("Tensor allocation error!\n");
+        EXIT_FAILURE;
+    }
 
     return InputTensor;
 }
 
 // Allocating memory for char arrays
-static char* AllocateMemoryChar(char* InputCharArray)
+static char* CallocateMemoryChar(char* InputCharArray)
 {
-    InputCharArray = (char*)calloc(16, sizeof(char));
+    InputCharArray = (char*)calloc(64, sizeof(char));
+
+    if(InputCharArray == NULL)
+    {
+        perror("Char array allocation error!\n");
+        EXIT_FAILURE;
+    }
 
     return InputCharArray;
 }
@@ -34,15 +46,11 @@ static char* AllocateMemoryChar(char* InputCharArray)
 //
 // Also the file should "look like" a Tensor, so every rows and columns
 // should have the same amount of numbers. (Imperfect rows/columns are permitted.)
-static double* ReadInTensor(FILE* Input, double* Tensor, int* NumberOfRows, int* TensorIndex)
+static double* ReadInTensor(FILE* Input, double* Tensor, int* NumberOfRows, int* TensorIndex, char* CurrentNumber)
 {
 
     // Temporary storage for current character, read from input
     char FileStream;
-
-    // Temporary storage for current number in a char array
-    char* CurrentNumber;
-    CurrentNumber = AllocateMemoryChar(CurrentNumber);
 
     // Temporary storage for current tensor element after converting char array (string) to double
     double CurrentTensorElement;
@@ -92,7 +100,7 @@ static double* ReadInTensor(FILE* Input, double* Tensor, int* NumberOfRows, int*
 
             if(CharIndex >= (sizeof(CurrentNumber)/sizeof(CurrentNumber[0])))
             {
-                CurrentNumber = (char*)realloc(CurrentNumber, ((sizeof(CurrentNumber)/sizeof(CurrentNumber[0])) * 2));
+                CurrentNumber = (char*)realloc(CurrentNumber, (sizeof(CurrentNumber) * 2));
             }
         }
 
@@ -117,14 +125,19 @@ static double* ReadInTensor(FILE* Input, double* Tensor, int* NumberOfRows, int*
 
             if(*TensorIndex >= (sizeof(Tensor)/sizeof(Tensor[0])))
             {
-                Tensor = (double*)realloc(Tensor, ((sizeof(*Tensor)/sizeof(Tensor[0])) * 2));
+                Tensor = (double*)realloc(Tensor, (sizeof(Tensor) * 2));
             }
         }
     }
-
-    printf("Free before");
-    free(CurrentNumber);
-    printf("Free after");
+    
+    if(CurrentNumber != NULL)
+    {
+        printf("Size of CurrentNumber char array: %llu\n", sizeof(CurrentNumber));
+        printf("Size of Tensor array: %llu\n", sizeof(Tensor));
+        printf("Freeing memory space of CurrentNumber array...\n");
+        free(CurrentNumber);
+        printf("CurrentNumber array's memory space got freed!\n");
+    }
 
     return Tensor;
 }
@@ -198,11 +211,17 @@ int main()
     // Allocate memory for used array-type variables
     double* Matrix;
     double* Vector;
-	double* Output;
+    double* Output;
+
+    // Temporary storage for current number in a char array
+    char* CurrentNumber;
+    CurrentNumber = CallocateMemoryChar(CurrentNumber);
+
+    printf("Size of CurrentNumber char array at beginning: %llu\n", sizeof(CurrentNumber));
 
     // Allocate memory for input tensors
-    Matrix = AllocateMemory(Matrix);
-    Vector = AllocateMemory(Vector);
+    Matrix = CallocateMemory(Matrix);
+    Vector = CallocateMemory(Vector);
 
     // Index for counting rows of our matrix
     int NumberOfRowsMx = 1;
@@ -220,7 +239,7 @@ int main()
 
     // Read in matrix from input file
     // The ReadInTensor function returns a double* array
-    Matrix = ReadInTensor(Input_Mx, Matrix, &NumberOfRowsMx, &TensorIndexMx);
+    Matrix = ReadInTensor(Input_Mx, Matrix, &NumberOfRowsMx, &TensorIndexMx, CurrentNumber);
 
     // Close the input file
     fclose(Input_Mx);
@@ -234,7 +253,7 @@ int main()
 
     // Read in vectorfrom input file
     // The ReadInOneDArray function returns a double* array
-    Vector = ReadInTensor(Input_Vc, Vector, &NumberOfRowsVcAUX, &TensorIndexVc);
+    Vector = ReadInTensor(Input_Vc, Vector, &NumberOfRowsVcAUX, &TensorIndexVc, CurrentNumber);
 
     // Close the input file
     fclose(Input_Vc);
