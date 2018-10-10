@@ -6,7 +6,9 @@
 
 const char FILE_NAME[] = "matrix.txt";
 
+// Machine epsilon of float32
 const double floateps = 1.1920929e-07;
+
 
 
 // Count the rows of the matrix in the input file
@@ -151,7 +153,7 @@ double* CreateFullMatrix(FILE* InputFile, unsigned int DimensionOfMatrix)
     {
         for(unsigned int j = 0; j < DimensionOfMatrix; j ++)
         {
-            FullMatrix[DimensionOfMatrix * i + j] = InputMatrix[DimensionOfMatrix * i + j];
+            FullMatrix[2 * DimensionOfMatrix * i + j] = InputMatrix[DimensionOfMatrix * i + j];
         }
     }
 
@@ -160,7 +162,7 @@ double* CreateFullMatrix(FILE* InputFile, unsigned int DimensionOfMatrix)
     {
         for(unsigned int j = DimensionOfMatrix; j < 2 * DimensionOfMatrix; j ++)
         {
-            FullMatrix[DimensionOfMatrix * i + j] = IdentityMatrix[DimensionOfMatrix * i + j];
+            FullMatrix[2 * DimensionOfMatrix * i + j] = IdentityMatrix[DimensionOfMatrix * i + j];
         }
     }
 
@@ -204,7 +206,7 @@ double* GaussJordan(FILE* InputFile, unsigned int DimensionOfMatrix)
         // It runs through all elements
         for(unsigned int i = (j + 1); j < DimensionOfMatrix; j++)
         {
-            if(FullGaussMatrix[DimensionOfMatrix * i + j] > FullGaussMatrix[DimensionOfMatrix * TempStoreIndex + j])
+            if(FullGaussMatrix[2 * DimensionOfMatrix * i + j] > FullGaussMatrix[2 * DimensionOfMatrix * TempStoreIndex + j])
             {
                 TempStoreIndex = i;
             }
@@ -212,7 +214,7 @@ double* GaussJordan(FILE* InputFile, unsigned int DimensionOfMatrix)
 
         // Check if the greatest element is smaller, than the 32bit float machine epsilon
         // If yes, then the matrix is numerically singular, and cannot be inverted
-        if((FullGaussMatrix[DimensionOfMatrix * TempStoreIndex + j]) < floateps)
+        if((FullGaussMatrix[2 * DimensionOfMatrix * TempStoreIndex + j]) < floateps)
         {
             printf("Given matrix is singular and cannot be inverted! The program exits.");
             exit(0);
@@ -223,22 +225,22 @@ double* GaussJordan(FILE* InputFile, unsigned int DimensionOfMatrix)
         {
             for(unsigned int k = 0; k < 2 * DimensionOfMatrix; k++)
             {
-                TempStorage = FullGaussMatrix[DimensionOfMatrix * j + k];
-                FullGaussMatrix[DimensionOfMatrix * j + k] = FullGaussMatrix[DimensionOfMatrix * TempStoreIndex + k];
-                FullGaussMatrix[DimensionOfMatrix * TempStoreIndex + k] = TempStorage;
+                TempStorage = FullGaussMatrix[2 * DimensionOfMatrix * j + k];
+                FullGaussMatrix[2 * DimensionOfMatrix * j + k] = FullGaussMatrix[2 * DimensionOfMatrix * TempStoreIndex + k];
+                FullGaussMatrix[2 * DimensionOfMatrix * TempStoreIndex + k] = TempStorage;
             }
         }
 
         // Perform substitutions and normalization
         for(unsigned int i = 0; i < DimensionOfMatrix; i++)
         {
-            mat_ij = FullGaussMatrix[DimensionOfMatrix * i + j];
+            mat_ij = FullGaussMatrix[2 * DimensionOfMatrix * i + j];
 
             if(i != j)
             {
                 for(unsigned int k = 0; k < 2 * DimensionOfMatrix; k++)
                 {
-                    FullGaussMatrix[DimensionOfMatrix * i + k] -= (FullGaussMatrix[DimensionOfMatrix * j + k]/FullGaussMatrix[DimensionOfMatrix * j + j]) * mat_ij;
+                    FullGaussMatrix[2 * DimensionOfMatrix * i + k] -= (FullGaussMatrix[2 * DimensionOfMatrix * j + k]/FullGaussMatrix[2 * DimensionOfMatrix * j + j]) * mat_ij;
                 }
             }
 
@@ -246,7 +248,7 @@ double* GaussJordan(FILE* InputFile, unsigned int DimensionOfMatrix)
             {
                 for(unsigned int k = 0; k < 2 * DimensionOfMatrix; k++)
                 {
-                    FullGaussMatrix[DimensionOfMatrix * i + k] /= mat_ij ;
+                    FullGaussMatrix[2 * DimensionOfMatrix * i + k] /= mat_ij ;
                 }
             }
         }
@@ -265,7 +267,7 @@ void PrintInverseMatrix(double* FullGaussMatrix, unsigned int DimensionOfMatrix)
     {
         for(unsigned int j = DimensionOfMatrix; j < 2 * DimensionOfMatrix; j++)
         {
-            printf("%lf ", FullGaussMatrix[DimensionOfMatrix * i + j]);
+            printf("%lf ", FullGaussMatrix[2 * DimensionOfMatrix * i + j]);
         }
         printf("\n");
     }
