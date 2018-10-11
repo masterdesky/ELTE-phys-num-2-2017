@@ -18,9 +18,9 @@ DataStruct OrbitalValues;
 // Global control parameters
 // 1. Length of Euler step
 // 2. Number of total steps
-const char FILE_NAME[] = "Results.txt";
-double LengthOfSteps = 10;
-int NumberOfSteps = 1000000;
+const char FILE_NAME[] = "ResultsSample.txt";
+double LengthOfSteps = 100;
+int NumberOfSteps = 100000;
 
 // Function prototypes
 DataStruct AllocateMemoryForDataVectors();
@@ -134,14 +134,14 @@ void EulerStep(DataStruct GivenData, DataStruct ProcessedData, FILE* OutputFile)
     // ProcessedData.RowsOfDataVector have 4 values, therefore yn will have 4 elements
     double yn[4];
 
-    fprintf(OutputFile, "\'x\'-coordinates\t\'y\'-coordinates\tVelocity_x\tVelocity_y\tKinetic E\tTime");
+    fprintf(OutputFile, "\'x\'-coordinates\t\t\'y\'-coordinates\t\tVelocity_x\t   Velocity_y\t      Kinetic E\t           Time\n");
 
     // Step with the independent variable
     for(register unsigned int j = 0; j <= NumberOfSteps; j++)
     {
         //Fprintf results into the output file for fitting
-        fprintf(OutputFile, "%g m\t%g m\t%f m/s\t%f m/s\t%g J\t", ProcessedData.DataVector[0], ProcessedData.DataVector[1], ProcessedData.DataVector[2], ProcessedData.DataVector[3], EnergyOfMoon(ProcessedData, GivenData));
-        fprintf(OutputFile, "%g s\n", Time);
+        fprintf(OutputFile, "%f m\t%f m\t%f m/s\t%f m/s\t%f J\t", ProcessedData.DataVector[0], ProcessedData.DataVector[1], ProcessedData.DataVector[2], ProcessedData.DataVector[3], EnergyOfMoon(ProcessedData, GivenData));
+        fprintf(OutputFile, "%f s\n", Time);
         Time += LengthOfSteps;
 
         // Euler step
