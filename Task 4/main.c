@@ -144,7 +144,7 @@ void EulerStep(DataStruct GivenData, DataStruct ProcessedData)
     }
 }
 
-int main(void)
+int main()
 {
     //Variables
     FILE* OutputFile;   //File
@@ -166,5 +166,5 @@ int main(void)
     //Derivate and Euler
     EulerStep(GivenData, );
 
-    exit(EXIT_SUCCESS);
+    return 0;
 }

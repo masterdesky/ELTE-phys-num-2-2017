@@ -1,25 +1,29 @@
+#define _CRT_SECURE_NO_DEPRECATE
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
 
-/* THE CARTESIAN COORDINATESYSTEM HAS BEEN USED IN THE PROGRAM. THE COORDIANTES ARE INDICATED WITH X AND Y.
-   THE X CORDINATE */
 
-//STRUCK FOR GLOBAL DATAS
+// Struct for orbital datas
 typedef struct
 {
     int RowsOfDataVector;
     double* DataVector;
 } DataStruct;
 
-//GLOBAL VARIABLES
+// Typedef struct's name for calling contained variables
+DataStruct OrbitalValues;
+
+// Global control parameters
+// 1. Length of Euler step
+// 2. 
 const char FILE_NAME[] = "Results.txt";
 double LengthOfSteps = 1;
 int NumberOfSteps = 24192000;
-DataStruct OrbitalValues;
 
-//Declare functions
+
+// Function prototypes
 DataStruct AllocateMemoryForDataVectors();
 DataStruct ConstantValues();
 DataStruct InitialVariables();
@@ -61,16 +65,27 @@ DataStruct ConstantValues(DataStruct GivenData)
 	return GivenData;
 }
 
-//WE FOLLOW THE MOTION CONVENTIONALLY STARTING FROM THE PERIAPSIS AT T = 0
+// We follow the motion with the ProcessedData.DataVector array
+// Data starting at t = 0, when the Moon is the periaspsis
+// These data will be updated at every step
 DataStruct InitialVariables(DataStruct ProcessedData, DataStruct GivenData)
 {
-    //DATA AT T = 0, STARTING FROM THE PERIASPSIS
-    //THESE DATA WILL EVENTUALLY CHANGING, THE Y COORDINATE WILL HAVE A MAXIMUM AT THE APOAPSIS
-    //THE MAXIMUM VELOCITY IN X WILL BE THE MINIMAL ORBITAL VEOLCITY
-	ProcessedData.DataVector[0] = GivenData.DataVector[4]; //AT THE PERIAPSIS THE X COORDINATE SHOULD BE THE LENGTH OF THE PERIAPSIS
-	ProcessedData.DataVector[1] = 0; //THE Y COORDINATES SHOULD BE 0, MAXIMUM IS THE LENGTH OF APOAPSIS
-	ProcessedData.DataVector[2] = 0; //THE VELOCITY OF X SHOULD BE 0 (MAXIMUM IS AT THE APOAPSIS, MINIMAL ORBIT VELOCITY IS THE MAXIMUM HERE)
-	ProcessedData.DataVector[3] = GivenData.DataVector[5]; //THE VELOCITY OF Y SHOULD BE THE MAXIMAL ORBIT VELOCITY (AT THE PERIAPSIS)
+    // 'x'-coordine
+    // At the periapsis the 'x' coordinate should be trivially the length of the periapsis
+	ProcessedData.DataVector[0] = GivenData.DataVector[4];
+
+    // 'y'-coordinate
+    // At the periapsis, the 'y' coordinates should be 0. Its maximum is in the apoapsis, and its trivially the length of apoapsis there
+	ProcessedData.DataVector[1] = 0;
+
+    // Velocity, 'x'-component
+    // At the periapsis , the velocity's 'x'-component should be trivially 0. Its maximum is in the apoapsis,
+    // and that is also the minimum of the orbital velocity.
+	ProcessedData.DataVector[2] = 0;
+
+    // Velocity, 'y'-component
+    // At the periapsis, the velocity's 'y'-component should be the maximal orbit velocity. Its minimum (0) is in the apoapsis.
+	ProcessedData.DataVector[3] = GivenData.DataVector[5];
 
 	ProcessedData.RowsOfDataVector = 4;
 
@@ -148,7 +163,7 @@ double EnergyOfMoon(DataStruct ProcessedData, DataStruct GivenData)
     return Energy;
 }
 
-int main(void)
+int main()
 {
     //Variables
     FILE* OutputFile;   //File
@@ -177,5 +192,5 @@ int main(void)
     free(GivenData.DataVector);
     free(ProcessedData.DataVector);
 
-    exit(0);
+    return 0;
 }
