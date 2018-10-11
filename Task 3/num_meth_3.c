@@ -13,26 +13,26 @@ static const double floateps = 1.1920929e-07;
 //
 void CheckingIntegrity(FILE*);
 //
-void ReadInFileNameSTDIN(char**);
+void ReadInFileNameSTDIN(char*);
 void ReadInIndependentSTDIN(unsigned int*);
 void ReadInPolyOrderSTDIN(unsigned int*);
 void CountRowsOfInput(FILE*, unsigned int*);
 //
 double* CallocateMemory(unsigned int);
 //
-void LoadFile(FILE*, double**, unsigned int, unsigned int);
-void LoadMeasurementsErrors(double*, double**, unsigned int, unsigned int);
-void LoadDependentVariables(double*, double**, double*, unsigned int, unsigned int);
-void LoadInitialMatrix(double**, double*, double*, unsigned int, unsigned int, unsigned int);
+void LoadFile(FILE*, double*, unsigned int, unsigned int);
+void LoadMeasurementsErrors(double*, double*, unsigned int, unsigned int);
+void LoadDependentVariables(double*, double*, double*, unsigned int, unsigned int);
+void LoadInitialMatrix(double*, double*, double*, unsigned int, unsigned int, unsigned int);
 // Polynomial
-void TransposeInitialMatrix(double**, double*, unsigned int, unsigned int);
-void MultiplyTransposeAndVector(double**, double*, double*, unsigned int, unsigned int);
-void MultiplyTransposeAndOriginal(double**, double**, double*, double*, unsigned int, unsigned int);
+void TransposeInitialMatrix(double*, double*, unsigned int, unsigned int);
+void MultiplyTransposeAndVector(double*, double*, double*, unsigned int, unsigned int);
+void MultiplyTransposeAndOriginal(double*, double*, double*, double*, unsigned int, unsigned int);
 // Gauss-Jordan
-void AppendIdentityMatrix(double**, unsigned int);
-void GaussJordan(double**, unsigned int);
-void EliminationChecker(double*, double*, double**, unsigned int);
-void MultiplyGaussedWith_MtxTMulVec(double**, double*, double*, unsigned int);
+void AppendIdentityMatrix(double*, unsigned int);
+void GaussJordan(double*, unsigned int);
+void EliminationChecker(double*, double*, double*, unsigned int);
+void MultiplyGaussedWith_MtxTMulVec(double*, double*, double*, unsigned int);
 // Output
 void PrintFittedParameters(FILE*, double*, unsigned int, unsigned int);
 
@@ -55,13 +55,13 @@ void CheckingIntegrity(FILE* InputFile)
 
 
 // Scan file name from standard input
-void ReadInFileNameSTDIN(char** FILE_NAME)
+void ReadInFileNameSTDIN(char* FILE_NAME)
 {
     printf("Please enter the name of the file, which includes the fitting data.   \n"
            "The file name should be something like that: small.dat, or small.txt\n\n"
            "File name: ");
 
-    scanf("%255s", &**FILE_NAME);
+    scanf("%255s", FILE_NAME);
     printf("\n");
 }
 
@@ -91,8 +91,11 @@ void ReadInPolyOrderSTDIN(unsigned int* PolOrder)
 
 
 // Count the number of rows in the file
-void CountRowsOfInput(FILE* InputFile, unsigned int* Counter)
+void CountRowsOfInput(FILE* InputFile, unsigned int* RowsOfInitialMatrix)
 {
+
+    unsigned int Counter = 0;
+
     char CharacterNow;
     char CharacterPrev = '\0';
 
@@ -103,6 +106,7 @@ void CountRowsOfInput(FILE* InputFile, unsigned int* Counter)
         if(CharacterNow == EOF)
         {
             Counter++;
+            *RowsOfInitialMatrix = Counter;
             break;
         }
         
@@ -113,9 +117,6 @@ void CountRowsOfInput(FILE* InputFile, unsigned int* Counter)
         
         CharacterPrev = CharacterNow;
     }
-
-    //Testing
-    printf("Number of lines: %ud\n\n", *Counter);
 }
 
 
@@ -137,7 +138,7 @@ double* CallocateMemory(unsigned int MemorySize)
 
 
 // Load the full file into a double* array
-void LoadFile(FILE* InputFile, double** FullMatrix, unsigned int RowsOfInitialMatrix, unsigned int NumberOfIndependentVariables)
+void LoadFile(FILE* InputFile, double* FullMatrix, unsigned int RowsOfInitialMatrix, unsigned int NumberOfIndependentVariables)
 {
     // Load file into matrix with N*(M+2) elements, where
     // N = Number of rows
@@ -147,20 +148,20 @@ void LoadFile(FILE* InputFile, double** FullMatrix, unsigned int RowsOfInitialMa
     {
         for(unsigned int j = 0; j < NumberOfIndependentVariables+2; j++)
         {
-            fscanf(InputFile, "%lf", &*FullMatrix[(NumberOfIndependentVariables+2) * i + j]);
+            fscanf(InputFile, "%lf", &FullMatrix[(NumberOfIndependentVariables+2) * i + j]);
         }
     }
 }
 
 
 // Load the errors into a double* array from FullMatrix
-void LoadMeasurementsErrors(double* FullMatrix, double** MeasurementsErrors, unsigned int RowsOfInitialMatrix, unsigned int NumberOfIndependentVariables)
+void LoadMeasurementsErrors(double* FullMatrix, double* MeasurementsErrors, unsigned int RowsOfInitialMatrix, unsigned int NumberOfIndependentVariables)
 {
     for(unsigned int i = 0; i < RowsOfInitialMatrix; i++)
     {
         for(unsigned int j = NumberOfIndependentVariables+1; j < NumberOfIndependentVariables+2; j++)
         {
-            *MeasurementsErrors[i] = FullMatrix[(NumberOfIndependentVariables+2) * i + j];
+            MeasurementsErrors[i] = FullMatrix[(NumberOfIndependentVariables+2) * i + j];
         }
     }
 }
@@ -168,14 +169,14 @@ void LoadMeasurementsErrors(double* FullMatrix, double** MeasurementsErrors, uns
 
 // First load the dependent variables into an array
 // Secondly divide them by the corresponding measurement errors
-void LoadDependentVariables(double* FullMatrix, double** DependentVariables, double* MeasurementsErrors, unsigned int RowsOfInitialMatrix, unsigned int NumberOfIndependentVariables)
+void LoadDependentVariables(double* FullMatrix, double* DependentVariables, double* MeasurementsErrors, unsigned int RowsOfInitialMatrix, unsigned int NumberOfIndependentVariables)
 {
     for(unsigned int i = 0; i < RowsOfInitialMatrix; i++)
     {
         for(unsigned int j = NumberOfIndependentVariables; j < NumberOfIndependentVariables+1; j++)
         {
-            *DependentVariables[i] = FullMatrix[(NumberOfIndependentVariables+2) * i + j];
-            *DependentVariables[i] /= MeasurementsErrors[i];
+            DependentVariables[i] = FullMatrix[(NumberOfIndependentVariables+2) * i + j];
+            DependentVariables[i] /= MeasurementsErrors[i];
         }
     }
 }
@@ -195,14 +196,14 @@ void LoadDependentVariables(double* FullMatrix, double** DependentVariables, dou
 //
 // Where "n" is the order of the desired polynomial fit
 // At last, divide the elements of this matrix with the corresponding measurement errors
-void LoadInitialMatrix(double** InitialMatrix, double* DependentVariables, double* MeasurementsErrors, unsigned int RowsOfInitialMatrix, unsigned int NumberOfIndependentVariables, unsigned int DimensionOf_MtxTMulMtx)
+void LoadInitialMatrix(double* InitialMatrix, double* DependentVariables, double* MeasurementsErrors, unsigned int RowsOfInitialMatrix, unsigned int NumberOfIndependentVariables, unsigned int DimensionOf_MtxTMulMtx)
 {
     // Fill first row with ones
     for(unsigned int i = 0; i < RowsOfInitialMatrix; i++)
     {
         for(unsigned int j = 0; j < 1; j++)
         {
-            *InitialMatrix[DimensionOf_MtxTMulMtx * i + j] = 1;
+            InitialMatrix[DimensionOf_MtxTMulMtx * i + j] = 1;
         }
     }
 
@@ -211,22 +212,22 @@ void LoadInitialMatrix(double** InitialMatrix, double* DependentVariables, doubl
     {
         for(unsigned int j = 1; j < NumberOfIndependentVariables; j++)
         {
-            *InitialMatrix[DimensionOf_MtxTMulMtx * i + j] = pow(DependentVariables[i], j);
-            *InitialMatrix[DimensionOf_MtxTMulMtx * i + j] /= MeasurementsErrors[i];
+            InitialMatrix[DimensionOf_MtxTMulMtx * i + j] = pow(DependentVariables[i], j);
+            InitialMatrix[DimensionOf_MtxTMulMtx * i + j] /= MeasurementsErrors[i];
         }
     }
 }
 
 
 // Transposing the InitialMatrix
-void TransposeInitialMatrix(double** TransposedInitialMatrix, double* InitialMatrix, unsigned int RowsOfInitialMatrix, unsigned int DimensionOf_MtxTMulMtx)
+void TransposeInitialMatrix(double* TransposedInitialMatrix, double* InitialMatrix, unsigned int RowsOfInitialMatrix, unsigned int DimensionOf_MtxTMulMtx)
 {
     //Switch all element M_ij, with the element M_ji
     for(unsigned int j = 0; j < RowsOfInitialMatrix; j++)
     {
         for(unsigned int i = 0; i < DimensionOf_MtxTMulMtx; i++)
         {
-            *TransposedInitialMatrix[RowsOfInitialMatrix * i + j] = InitialMatrix[DimensionOf_MtxTMulMtx * j + i];
+            TransposedInitialMatrix[RowsOfInitialMatrix * i + j] = InitialMatrix[DimensionOf_MtxTMulMtx * j + i];
         }
     }
 }
@@ -234,14 +235,14 @@ void TransposeInitialMatrix(double** TransposedInitialMatrix, double* InitialMat
 
 // Multiply transposed matrix and the vector, created from the dependent variables
 // Like this: X.T * y
-void MultiplyTransposeAndVector(double** MtxTMulVec, double* DependentVariables, double* TransposedInitialMatrix, unsigned int RowsOfInitialMatrix, unsigned int DimensionOf_MtxTMulMtx)
+void MultiplyTransposeAndVector(double* MtxTMulVec, double* DependentVariables, double* TransposedInitialMatrix, unsigned int RowsOfInitialMatrix, unsigned int DimensionOf_MtxTMulMtx)
 {
     //Multiply the vector and the transposed matrix
     for(unsigned int i = 0; i < DimensionOf_MtxTMulMtx; i++)
     {
         for(unsigned int j = 0; j < RowsOfInitialMatrix; j++)
         {
-               *MtxTMulVec[i] += (TransposedInitialMatrix[RowsOfInitialMatrix * i + j] * DependentVariables[j]);
+               MtxTMulVec[i] += (TransposedInitialMatrix[RowsOfInitialMatrix * i + j] * DependentVariables[j]);
         }
     }
 }
@@ -249,7 +250,7 @@ void MultiplyTransposeAndVector(double** MtxTMulVec, double* DependentVariables,
 
 // Multiply original InitialMatrix and its trasposed variant from the left side
 // Like this: X.T * X
-void MultiplyTransposeAndOriginal(double** GaussedMatrix, double** MtxTMulMtx, double* InitialMatrix, double* TransposedInitialMatrix, unsigned int RowsOfInitialMatrix, unsigned int DimensionOf_MtxTMulMtx)
+void MultiplyTransposeAndOriginal(double* GaussedMatrix, double* MtxTMulMtx, double* InitialMatrix, double* TransposedInitialMatrix, unsigned int RowsOfInitialMatrix, unsigned int DimensionOf_MtxTMulMtx)
 {
     // Temporary storage for matrix elements
     double Temp = 0;
@@ -264,8 +265,8 @@ void MultiplyTransposeAndOriginal(double** GaussedMatrix, double** MtxTMulMtx, d
                 Temp += TransposedInitialMatrix[RowsOfInitialMatrix * i + k] * InitialMatrix[DimensionOf_MtxTMulMtx * k + j];
             }
 
-            *GaussedMatrix[2 * DimensionOf_MtxTMulMtx * i + j] = Temp;
-            *MtxTMulMtx[DimensionOf_MtxTMulMtx * i + j] = Temp;
+            GaussedMatrix[2 * DimensionOf_MtxTMulMtx * i + j] = Temp;
+            MtxTMulMtx[DimensionOf_MtxTMulMtx * i + j] = Temp;
             Temp = 0;
         }
     }
@@ -273,7 +274,7 @@ void MultiplyTransposeAndOriginal(double** GaussedMatrix, double** MtxTMulMtx, d
 
 
 // Append and identity matrix in the GaussedMatrix's other half
-void AppendIdentityMatrix(double** GaussedMatrix, unsigned int DimensionOf_MtxTMulMtx)
+void AppendIdentityMatrix(double* GaussedMatrix, unsigned int DimensionOf_MtxTMulMtx)
 {
     for(unsigned int i = 0; i < DimensionOf_MtxTMulMtx; i++)
     {
@@ -281,10 +282,10 @@ void AppendIdentityMatrix(double** GaussedMatrix, unsigned int DimensionOf_MtxTM
         {
             if(i == (j % DimensionOf_MtxTMulMtx))
             {
-                *GaussedMatrix[2 * DimensionOf_MtxTMulMtx * i + j] = 1;
+                GaussedMatrix[2 * DimensionOf_MtxTMulMtx * i + j] = 1;
             }
             else
-                *GaussedMatrix[2 * DimensionOf_MtxTMulMtx * i + j] = 0;
+                GaussedMatrix[2 * DimensionOf_MtxTMulMtx * i + j] = 0;
         }
     }
 }
@@ -295,7 +296,7 @@ void AppendIdentityMatrix(double** GaussedMatrix, unsigned int DimensionOf_MtxTM
 // 2. In the next steps the function do the same for the other columns too, starting the loop at the second row, then the third, then so on.
 // 3. After a step of the loop, the function are normalizing the whole row and performing substitutions to form the required inverse matrix.
 // 4. At the end, the diagonal elements will be all just ones, and below the diagonal line will be full of zeros.
-void GaussJordan(double** GaussedMatrix, unsigned int DimensionOf_MtxTMulMtx)
+void GaussJordan(double* GaussedMatrix, unsigned int DimensionOf_MtxTMulMtx)
 {
     // Temporary storage for indeces
     // Indicating the index of the row with current greatest element
@@ -326,7 +327,7 @@ void GaussJordan(double** GaussedMatrix, unsigned int DimensionOf_MtxTMulMtx)
 
         // Check if the greatest element is smaller, than the 32bit float machine epsilon
         // If yes, then the matrix is numerically singular, and cannot be inverted
-        if(fabs(*GaussedMatrix[2 * DimensionOf_MtxTMulMtx * TempStoreIndex + j]) < floateps)
+        if(fabs(GaussedMatrix[2 * DimensionOf_MtxTMulMtx * TempStoreIndex + j]) < floateps)
         {
             perror("Given matrix is singular and cannot be inverted! The program exits");
             EXIT_FAILURE;
@@ -337,22 +338,22 @@ void GaussJordan(double** GaussedMatrix, unsigned int DimensionOf_MtxTMulMtx)
         {
             for(unsigned int k = 0; k < 2 * DimensionOf_MtxTMulMtx; k++)
             {
-                TempStorage = *GaussedMatrix[2 * DimensionOf_MtxTMulMtx * j + k];
-                *GaussedMatrix[2 * DimensionOf_MtxTMulMtx * j + k] = *GaussedMatrix[2 * DimensionOf_MtxTMulMtx * TempStoreIndex + k];
-                *GaussedMatrix[2 * DimensionOf_MtxTMulMtx * TempStoreIndex + k] = TempStorage;
+                TempStorage = GaussedMatrix[2 * DimensionOf_MtxTMulMtx * j + k];
+                GaussedMatrix[2 * DimensionOf_MtxTMulMtx * j + k] = GaussedMatrix[2 * DimensionOf_MtxTMulMtx * TempStoreIndex + k];
+                GaussedMatrix[2 * DimensionOf_MtxTMulMtx * TempStoreIndex + k] = TempStorage;
             }
         }
 
         // Perform substitutions and normalization
         for(unsigned int i = 0; i < DimensionOf_MtxTMulMtx; i++)
         {
-            mat_ij = *GaussedMatrix[2 * DimensionOf_MtxTMulMtx * i + j];
+            mat_ij = GaussedMatrix[2 * DimensionOf_MtxTMulMtx * i + j];
 
             if(i != j)
             {
                 for(unsigned int k = 0; k < 2 * DimensionOf_MtxTMulMtx; k++)
                 {
-                    *GaussedMatrix[2 * DimensionOf_MtxTMulMtx * i + k] -= (*GaussedMatrix[2 * DimensionOf_MtxTMulMtx * j + k] / *GaussedMatrix[2 * DimensionOf_MtxTMulMtx * j + j]) * mat_ij;
+                    GaussedMatrix[2 * DimensionOf_MtxTMulMtx * i + k] -= (GaussedMatrix[2 * DimensionOf_MtxTMulMtx * j + k] / GaussedMatrix[2 * DimensionOf_MtxTMulMtx * j + j]) * mat_ij;
                 }
             }
 
@@ -360,7 +361,7 @@ void GaussJordan(double** GaussedMatrix, unsigned int DimensionOf_MtxTMulMtx)
             {
                 for(unsigned int k = 0; k < 2 * DimensionOf_MtxTMulMtx; k++)
                 {
-                    *GaussedMatrix[2 * DimensionOf_MtxTMulMtx * i + k] /= mat_ij ;
+                    GaussedMatrix[2 * DimensionOf_MtxTMulMtx * i + k] /= mat_ij ;
                 }
             }
         }
@@ -368,7 +369,7 @@ void GaussJordan(double** GaussedMatrix, unsigned int DimensionOf_MtxTMulMtx)
 }
 
 
-void EliminationChecker(double* GaussedMatrix, double* MtxTMulMtx, double** IdentityMatrix, unsigned int DimensionOf_MtxTMulMtx)
+void EliminationChecker(double* GaussedMatrix, double* MtxTMulMtx, double* IdentityMatrix, unsigned int DimensionOf_MtxTMulMtx)
 {
     // Temporary storage
     double Temp  = 0;
@@ -385,12 +386,12 @@ void EliminationChecker(double* GaussedMatrix, double* MtxTMulMtx, double** Iden
 
             if(Temp < floateps)
             {
-                *IdentityMatrix[2 * DimensionOf_MtxTMulMtx * i + j] = 0;
+                IdentityMatrix[2 * DimensionOf_MtxTMulMtx * i + j] = 0;
             }
 
             else
             {
-                *IdentityMatrix[2 * DimensionOf_MtxTMulMtx * i + j] = Temp;
+                IdentityMatrix[2 * DimensionOf_MtxTMulMtx * i + j] = Temp;
             }
             Temp = 0;
         }
@@ -402,20 +403,20 @@ void EliminationChecker(double* GaussedMatrix, double* MtxTMulMtx, double** Iden
     {
         for(unsigned int j = 0; j < DimensionOf_MtxTMulMtx; j++)
         {
-            fprintf(stdout, "%g ", *IdentityMatrix[2*DimensionOf_MtxTMulMtx * i + j]);
+            fprintf(stdout, "%g ", IdentityMatrix[2*DimensionOf_MtxTMulMtx * i + j]);
         }
         fprintf(stdout, "\n");
     }
 }
 
-void MultiplyGaussedWith_MtxTMulVec(double** FittedParameters, double* MtxTMulVec, double* GaussedMatrix, unsigned int DimensionOf_MtxTMulMtx)
+void MultiplyGaussedWith_MtxTMulVec(double* FittedParameters, double* MtxTMulVec, double* GaussedMatrix, unsigned int DimensionOf_MtxTMulMtx)
 {
     //Multiply them
     for(unsigned int i = 0; i < DimensionOf_MtxTMulMtx; i++)
     {
         for(unsigned int j = 0; j < DimensionOf_MtxTMulMtx; j++)
         {
-               *FittedParameters[i] += (GaussedMatrix[2*DimensionOf_MtxTMulMtx * i + j] * MtxTMulVec[j]);
+               FittedParameters[i] += (GaussedMatrix[2*DimensionOf_MtxTMulMtx * i + j] * MtxTMulVec[j]);
         }
     }
 }
@@ -465,7 +466,7 @@ int main()
 
     // Used variables, regarding size of input file and matrix
     // Eg. columns, rows, dependent/independet variables, etc.
-    char* FILE_NAME = (char*)calloc(256, sizeof(char));
+    char FILE_NAME[256];
     unsigned int NumberOfIndependentVariables;
     unsigned int OrderOfPolynomial;
     unsigned int RowsOfInitialMatrix = 0;
@@ -517,10 +518,10 @@ int main()
 
 
     // Loading in the designmatrix and the corresponding vectors (Dependent variables and errors)
-    LoadFile(InputFile, &FullMatrix, RowsOfInitialMatrix, NumberOfIndependentVariables);
-    LoadMeasurementsErrors(FullMatrix, &MeasurementsErrors, RowsOfInitialMatrix, NumberOfIndependentVariables);
-    LoadDependentVariables(FullMatrix, &DependentVariables, MeasurementsErrors, RowsOfInitialMatrix, NumberOfIndependentVariables);
-    LoadInitialMatrix(&InitialMatrix, DependentVariables, MeasurementsErrors, RowsOfInitialMatrix, NumberOfIndependentVariables, DimensionOf_MtxTMulMtx);
+    LoadFile(InputFile, FullMatrix, RowsOfInitialMatrix, NumberOfIndependentVariables);
+    LoadMeasurementsErrors(FullMatrix, MeasurementsErrors, RowsOfInitialMatrix, NumberOfIndependentVariables);
+    LoadDependentVariables(FullMatrix, DependentVariables, MeasurementsErrors, RowsOfInitialMatrix, NumberOfIndependentVariables);
+    LoadInitialMatrix(InitialMatrix, DependentVariables, MeasurementsErrors, RowsOfInitialMatrix, NumberOfIndependentVariables, DimensionOf_MtxTMulMtx);
 
     free(FullMatrix);
 
@@ -529,21 +530,21 @@ int main()
 
     // Create the matrix equation
     // X.T * X * a = X.T * y
-    TransposeInitialMatrix(&TransposedInitialMatrix, InitialMatrix, RowsOfInitialMatrix, DimensionOf_MtxTMulMtx);
-    MultiplyTransposeAndOriginal(&GaussedMatrix, &MtxTMulMtx, InitialMatrix, TransposedInitialMatrix, RowsOfInitialMatrix, DimensionOf_MtxTMulMtx);
-    MultiplyTransposeAndVector(&MtxTMulVec, DependentVariables, TransposedInitialMatrix, RowsOfInitialMatrix, DimensionOf_MtxTMulMtx);
+    TransposeInitialMatrix(TransposedInitialMatrix, InitialMatrix, RowsOfInitialMatrix, DimensionOf_MtxTMulMtx);
+    MultiplyTransposeAndOriginal(GaussedMatrix, MtxTMulMtx, InitialMatrix, TransposedInitialMatrix, RowsOfInitialMatrix, DimensionOf_MtxTMulMtx);
+    MultiplyTransposeAndVector(MtxTMulVec, DependentVariables, TransposedInitialMatrix, RowsOfInitialMatrix, DimensionOf_MtxTMulMtx);
 
     free(TransposedInitialMatrix);
 
     // Invert MtxTMulMtx with Gauss-Jordan elimination
-    AppendIdentityMatrix(&GaussedMatrix, DimensionOf_MtxTMulMtx);
-    GaussJordan(&GaussedMatrix, DimensionOf_MtxTMulMtx);
+    AppendIdentityMatrix(GaussedMatrix, DimensionOf_MtxTMulMtx);
+    GaussJordan(GaussedMatrix, DimensionOf_MtxTMulMtx);
     
     // Calculating the fitting parameters
-    MultiplyGaussedWith_MtxTMulVec(&FittedParameters, MtxTMulVec, GaussedMatrix, DimensionOf_MtxTMulMtx);
+    MultiplyGaussedWith_MtxTMulVec(FittedParameters, MtxTMulVec, GaussedMatrix, DimensionOf_MtxTMulMtx);
 
     // Check if Gauss-Jordan elimination was successfull
-    EliminationChecker(GaussedMatrix, MtxTMulMtx, &IdentityMatrix, DimensionOf_MtxTMulMtx);
+    EliminationChecker(GaussedMatrix, MtxTMulMtx, IdentityMatrix, DimensionOf_MtxTMulMtx);
 
     // Output
     PrintFittedParameters(OutputFile, FittedParameters, OrderOfPolynomial, NumberOfIndependentVariables);
