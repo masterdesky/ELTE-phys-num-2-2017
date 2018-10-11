@@ -429,7 +429,7 @@ void MultiplyGaussedWith_MtxTMulVec(double* FittedParameters, double* MtxTMulVec
 
 /* ------------------------------------------- OUTPUT MANAGEMENT ------------------------------------------- */
 
-void PrintFittedParameters(FILE* OutputFile, double* FittedParameters)
+void PrintFittedParameters(FILE* OutputFile, double* FittedParameters, unsigned int OrderOfPolynomial, unsigned int NumberOfIndependentVariables)
 {
     //Prinf fitting parameters
     fprintf(OutputFile, "Fitted parameters:\n");
@@ -444,13 +444,6 @@ void PrintFittedParameters(FILE* OutputFile, double* FittedParameters)
 }
 
 /* ------------------------------------------- MAIN ------------------------------------------- */
-
-//Calling of GJ functions
-void FunctionWaveOfGaussJordan(double* MtxTMulMtx, double* GaussedMatrix, double* IdentityMatrix, double* GaussedHalfMatrix, FILE* OutputFile)
-{
-    EliminationChecker(MtxTMulMtx, GaussedHalfMatrix, IdentityMatrix);
-}
-
 
 //
 //  #   #    #    #  #   #
@@ -509,6 +502,7 @@ int main()
     printf("Dimension of NxN matrix (X_transposed * X): %d\n", DimensionOf_MtxTMulMtx);
 
 
+
     // Allocating memory for double* arrays
     // CallocateMemory function allocates arbitrary sized memory, passed by value to it
     FullMatrix = CallocateMemory(RowsOfInitialMatrix * (NumberOfIndependentVariables + 2));
@@ -547,15 +541,18 @@ int main()
 
     free(TransposedInitialMatrix);
 
-    //Invert MtxTMulMtx with Gauss-Jordan elimination
+    // Invert MtxTMulMtx with Gauss-Jordan elimination
     AppendIdentityMatrix(&GaussedMatrix, DimensionOf_MtxTMulMtx);
     GaussJordan(&GaussedMatrix, DimensionOf_MtxTMulMtx);
     
-    //Calculating the fitting parameters
-    MultiplyGaussedWith_MtxTMulVec(FittedParameters, MtxTMulVec, GaussedHalfMatrix);
+    // Calculating the fitting parameters
+    MultiplyGaussedWith_MtxTMulVec(FittedParameters, MtxTMulVec, GaussedMatrix, DimensionOf_MtxTMulMtx);
 
-    //Output
-    PrintFittedParameters(OutputFile, FittedParameters);
+    // Check if Gauss-Jordan elimination was successfull
+    EliminationChecker(GaussedMatrix, MtxTMulMtx, IdentityMatrix, DimensionOf_MtxTMulMtx);
+
+    // Output
+    PrintFittedParameters(OutputFile, FittedParameters, OrderOfPolynomial, NumberOfIndependentVariables);
 
     free(InitialMatrix);
     free(DependentVariables);
