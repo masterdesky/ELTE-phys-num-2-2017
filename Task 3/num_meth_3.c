@@ -438,7 +438,6 @@ void PrintFittedParameters(FILE* OutputFile, double* FittedParameters, unsigned 
     }
 }
 
-/* ------------------------------------------- MAIN ------------------------------------------- */
 
 //
 //  #   #    #    #  #   #
