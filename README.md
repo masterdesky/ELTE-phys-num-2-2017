@@ -1,5 +1,7 @@
 # Numerical methods in physics 2016-2017/1 @ ELTE
 
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+
 All of the codes were wrote in `C language`.
 
 During the course, 4 projects had to be written, which were the following:
