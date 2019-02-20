@@ -1,4 +1,4 @@
-# Numerical methods in physics 2016-2017/1 @ ELTE
+# Numerical methods in physics II. 2016-2017/1 @ ELTE
 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
