@@ -1,10 +1,10 @@
-# Numerical methods in physics II. 2016-2017/1 @ ELTE
+# Numerical methods in physics II. 2016-2017/2 @ ELTE
 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
-All of the codes were written in `C language`.
+All codes here were written in the `C` language.
 
-During the course, 4 projects had to be done, which were the following:
+Throughout the course, we completed four projects, which were as follows:
 
 ### 1. Vector-Matrix Multiplication
 
